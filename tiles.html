@@ -117,7 +117,7 @@ function main() {
       let s = new Image();
       s.src = spriteSheetSource.shift();
       s.onload = loadSpriteSheets;
-      spriteSheets.push(s);  
+      spriteSheets.push(s);
     } else {
       loadComplete();
     }
@@ -125,7 +125,7 @@ function main() {
 
   function drawBackground() {
     for(let y=0; y<backgroundHeight; y++) {
-      for(let x=0; x<backgroundHeight; x++) {
+      for(let x=0; x<backgroundWidth; x++) {
         let bG = backgroundGrid[x + (y * backgroundWidth)];
         if(bG.sheetIndex >= 0) {
           ctx.drawImage(spriteSheets[bG.sheetIndex], bG.xOffset, bG.yOffset, tileWidth, tileHeight, x * tileWidth, y * tileHeight, tileWidth, tileHeight);
@@ -225,7 +225,7 @@ function main() {
 }
     </script>
   </head>
-  
+
   <body onload="main();">
     <canvas id="canvas" width="800" height="500" ondragstart="return false;" ondrop="return false;"></canvas>
   </body>
