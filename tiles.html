@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Tiles</title>
+    <!--script type="text/javascript" src="slider.js"></script-->
+    <script>
+
+function setKeyboardEvents() {
+  var pressedKeys = {};
+
+  function setKey(event, status) {
+    var code = event.keyCode;
+    var key;
+
+    switch(code) {
+      case 32:
+        key = 'SPACE'; break;
+      case 37:
+        key = 'LEFT'; break;
+      case 38:
+        key = 'UP'; break;
+      case 39:
+        key = 'RIGHT'; break;
+      case 40:
+        key = 'DOWN'; break;
+      default:
+        // Convert ASCII codes to letters
+        key = String.fromCharCode(code);
+    }
+    pressedKeys[key] = status;
+  }
+
+  document.addEventListener('keydown', function(e) {
+      setKey(e, true);
+  });
+
+  document.addEventListener('keyup', function(e) {
+      setKey(e, false);
+  });
+
+  window.addEventListener('blur', function() {
+      pressedKeys = {};
+  });
+
+  window.input = {
+      isDown: function(key) {
+          return pressedKeys[key.toUpperCase()];
+      }
+  };
+}
+
+function main() {
+
+  const backgroundHeight = 20;
+  const backgroundWidth = 20;
+  const tileWidth = 50;
+  const tileHeight = 50;
+
+  setKeyboardEvents();
+
+  var e = document.getElementById('canvas');
+  var ctx = e.getContext('2d');
+
+  //ctx.translate(0.5, 0.5);
+  ctx.fillStyle = 'black';
+
+  ctx.fillText('Hello World!', 10, 10);
+
+  var map = '';
+  map += '0-0 1-0 1-0 1-0 1-0 2-0\n';
+  map += '0-1  x   x   x   x  2-1\n';
+  map += '0-1  x   x   x   x  2-1\n';
+  map += '0-1  x   x   x   x  2-1\n';
+  map += '0-1  x   x   x   x  2-1\n';
+  map += '0-1  x   x   x   x  2-1\n';
+  map += '0-1  x   x   x   x  2-1\n';
+  map += '0-2 1-2 1-2 1-2 1-2 2-2\n';
+
+  // generate a background
+  var backgroundGrid = [];
+  for(let y=0; y<backgroundHeight; y++) {
+    for(let x=0; x<backgroundWidth; x++) {
+      backgroundGrid[x + (y * backgroundWidth)] = {
+        sheetIndex : 0,
+        xIndex: 0,
+        yIndex: 3,
+        xOffset: 0,
+        yOffset: 0
+      };
+    }
+  }
+
+  let lines = map.split('\n');
+  for(let y=0; y<lines.length; y++){
+    let column = lines[y].split(/\s+/);
+    for(let x=0; x<column.length; x++) {
+      if(column[x].indexOf('-') >= 0) {
+        let parts = column[x].split('-');
+        backgroundGrid[x + (y * backgroundWidth)].xIndex = parseInt(parts[0]);
+        backgroundGrid[x + (y * backgroundWidth)].yIndex = parseInt(parts[1]);
+      }
+    }
+  }
+
+  // precalculate positions on spritesheet
+  for(let i in backgroundGrid) {
+    if(backgroundGrid[i].sheetIndex >= 0) {
+      backgroundGrid[i].xOffset = backgroundGrid[i].xIndex * tileWidth;
+      backgroundGrid[i].yOffset = backgroundGrid[i].yIndex * tileHeight;
+    }
+  }
+
+  var spriteSheets = [];
+  var spriteSheetSource = 'sheet1.png sheet2.png'.split(' ');
+  function loadSpriteSheets() {
+    if(spriteSheetSource.length > 0) {
+      let s = new Image();
+      s.src = spriteSheetSource.shift();
+      s.onload = loadSpriteSheets;
+      spriteSheets.push(s);  
+    } else {
+      loadComplete();
+    }
+  }
+
+  function drawBackground() {
+    for(let y=0; y<backgroundHeight; y++) {
+      for(let x=0; x<backgroundHeight; x++) {
+        let bG = backgroundGrid[x + (y * backgroundWidth)];
+        if(bG.sheetIndex >= 0) {
+          ctx.drawImage(spriteSheets[bG.sheetIndex], bG.xOffset, bG.yOffset, tileWidth, tileHeight, x * tileWidth, y * tileHeight, tileWidth, tileHeight);
+        }
+      }
+    }
+  }
+
+  var normalSprites = [];
+
+  normalSprites.push(
+    { sheetIndex: 1,
+      srcX: 0,
+      srcY: 0,
+      srcWidth: 50,
+      srcHeight: 50,
+      srcSize: Math.hypot(50, 50),
+      posX: 20,
+      posY: 20,
+      posAngle: 90
+    }
+  );
+
+  function drawSprites() {
+    for(let i in normalSprites) {
+      let s = normalSprites[i];
+
+      // fix background underneath sprite.
+      let bgY = Math.ceil( (s.posY - s.srcSize) / tileHeight );
+      let bgXX = Math.ceil( (s.posX + s.srcSize) / tileWidth );
+      let bgYY = Math.ceil( (s.posY + s.srcSize) / tileHeight );
+      for(;bgY <= bgYY; bgY++) {
+        for(let bgX = Math.ceil( (s.posX - s.srcSize) / tileWidth ); bgX <= bgXX; bgX++) {
+          let bG = backgroundGrid[bgX + (bgY * backgroundWidth)];
+          if(bG && bG.sheetIndex >= 0) {
+            ctx.drawImage(spriteSheets[bG.sheetIndex], bG.xOffset, bG.yOffset, tileWidth, tileHeight, bgX * tileWidth, bgY * tileHeight, tileWidth, tileHeight);
+          }
+        }
+      }
+
+      if(s.posAngle != 0) {
+        ctx.save();
+        let tX = s.posX + s.srcWidth / 2;
+        let tY = s.posY + s.srcHeight / 2;
+
+        ctx.translate(tX, tY);
+        ctx.rotate(s.posAngle * Math.PI/180);
+        ctx.translate(-tX, -tY);
+
+        ctx.drawImage(spriteSheets[s.sheetIndex], s.srcX, s.srcY, s.srcWidth, s.srcHeight, s.posX, s.posY, s.srcWidth, s.srcHeight);
+        ctx.restore();
+      } else {
+        ctx.drawImage(spriteSheets[s.sheetIndex], s.srcX, s.srcY, s.srcWidth, s.srcHeight, s.posX, s.posY, s.srcWidth, s.srcHeight);
+      }
+    }
+  }
+
+  loadSpriteSheets();
+  var cursorX, cursorY;
+
+  function loadComplete() {
+    drawBackground();
+
+    document.querySelector("body").addEventListener('mousemove', getCursorPos);
+    function getCursorPos() {
+      cursorX = event.pageX;
+      cursorY = event.pageY;
+    }
+
+    var then = performance.now();
+    function aaa() {
+      drawSprites();
+
+      let now = performance.now();
+      let elapsed = now - then;
+      then = now;
+
+      let s = normalSprites[0];
+      let midX = s.posX + s.srcWidth / 2;
+      let midY = s.posY + s.srcHeight / 2;
+      let radian = Math.atan2(cursorX - midX, cursorY - midY);
+      if(!isNaN(radian)) {
+        normalSprites[0].posAngle = (radian * (180 / Math.PI) * -1) + 180;
+
+        let dist = Math.hypot(midX - cursorX, midY - cursorY);
+        if(dist > 5) {
+          normalSprites[0].posX += ((dist / 1000) * elapsed) * Math.sin(radian);
+          normalSprites[0].posY += ((dist / 1000) * elapsed) * Math.cos(radian);
+        }
+      }
+
+      setTimeout(aaa, 40);
+    }
+    aaa();
+  }
+
+}
+    </script>
+  </head>
+  
+  <body onload="main();">
+    <canvas id="canvas" width="800" height="500" ondragstart="return false;" ondrop="return false;"></canvas>
+  </body>
+</html>
