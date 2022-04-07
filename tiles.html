@@ -67,14 +67,26 @@ function main() {
   ctx.fillText('Hello World!', 10, 10);
 
   var map = '';
-  map += '0-0 1-0 1-0 1-0 1-0 2-0\n';
-  map += '0-1  x   x   x   x  2-1\n';
-  map += '0-1  x   x   x   x  2-1\n';
-  map += '0-1  x   x   x   x  2-1\n';
-  map += '0-1  x   x   x   x  2-1\n';
-  map += '0-1  x   x   x   x  2-1\n';
-  map += '0-1  x   x   x   x  2-1\n';
-  map += '0-2 1-2 1-2 1-2 1-2 2-2\n';
+  map += '0 1 1 1 1 2\n';
+  map += '3 x x x x 5\n';
+  map += '3 x x x x 5\n';
+  map += '3 x x x x 5\n';
+  map += '3 x x x x 5\n';
+  map += '3 x x x x 5\n';
+  map += '3 x x x x 5\n';
+  map += '6 7 7 7 7 8\n';
+
+  var spriteObjects = [
+    {xIndex:0, yIndex:0},
+    {xIndex:1, yIndex:0},
+    {xIndex:2, yIndex:0},
+    {xIndex:0, yIndex:1},
+    {xIndex:1, yIndex:1},
+    {xIndex:2, yIndex:1},
+    {xIndex:0, yIndex:2},
+    {xIndex:1, yIndex:2},
+    {xIndex:2, yIndex:2}
+  ];
 
   // generate a background
   var backgroundGrid = [];
@@ -94,10 +106,12 @@ function main() {
   for(let y=0; y<lines.length; y++){
     let column = lines[y].split(/\s+/);
     for(let x=0; x<column.length; x++) {
-      if(column[x].indexOf('-') >= 0) {
-        let parts = column[x].split('-');
-        backgroundGrid[x + (y * backgroundWidth)].xIndex = parseInt(parts[0]);
-        backgroundGrid[x + (y * backgroundWidth)].yIndex = parseInt(parts[1]);
+      if( isNaN( column[x] ) == false ) {
+        let n = parseInt(column[x]);
+        if(n < spriteObjects.length) {
+          backgroundGrid[x + (y * backgroundWidth)].xIndex = spriteObjects[n].xIndex;
+          backgroundGrid[x + (y * backgroundWidth)].yIndex = spriteObjects[n].yIndex;
+        }
       }
     }
   }
