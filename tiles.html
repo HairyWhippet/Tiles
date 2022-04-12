@@ -67,25 +67,39 @@ function main() {
   ctx.fillText('Hello World!', 10, 10);
 
   var map = '';
-  map += '0 1 1 1 1 2\n';
-  map += '3 x x x x 5\n';
-  map += '3 x x x x 5\n';
-  map += '3 x x x x 5\n';
-  map += '3 x x x x 5\n';
-  map += '3 x x x x 5\n';
-  map += '3 x x x x 5\n';
-  map += '6 7 7 7 7 8\n';
+  map += '00 01 01 01 01 01 01 01 01 01 01 01 01 01 02\n';
+  map += '03 04 04 04 04 04 04 04 04 04 04 04 04 04 05\n';
+  map += '03 04 09 10 10 10 10 10 10 10 10 10 11 04 05\n';
+  map += '03 04 12 13 13 13 13 13 13 13 13 13 14 04 05\n';
+  map += '03 04 12 13 13 13 13 13 13 13 13 13 14 04 05\n';
+  map += '03 04 12 13 13 13 13 13 13 13 13 13 14 04 05\n';
+  map += '03 04 12 13 13 13 13 13 13 13 13 13 14 04 05\n';
+  map += '03 04 12 13 13 13 13 13 13 13 13 13 14 04 05\n';
+  map += '03 04 12 13 13 13 13 13 13 13 13 13 14 04 05\n';
+  map += '03 04 15 16 16 16 16 16 16 16 16 16 17 04 05\n';
+  map += '03 04 04 04 04 04 04 04 04 04 04 04 04 04 05\n';
+  map += '06 07 07 07 07 07 07 07 07 07 07 07 07 07 08\n';
 
   var spriteObjects = [
-    {xIndex:0, yIndex:0},
-    {xIndex:1, yIndex:0},
-    {xIndex:2, yIndex:0},
-    {xIndex:0, yIndex:1},
-    {xIndex:1, yIndex:1},
-    {xIndex:2, yIndex:1},
-    {xIndex:0, yIndex:2},
-    {xIndex:1, yIndex:2},
-    {xIndex:2, yIndex:2}
+    {xIndex:0, yIndex:0, width:50, height:50},
+    {xIndex:1, yIndex:0, width:50, height:50},
+    {xIndex:2, yIndex:0, width:50, height:50},
+    {xIndex:0, yIndex:1, width:50, height:50},
+    {xIndex:1, yIndex:1, width:50, height:50},
+    {xIndex:2, yIndex:1, width:50, height:50},
+    {xIndex:0, yIndex:2, width:50, height:50},
+    {xIndex:1, yIndex:2, width:50, height:50},
+    {xIndex:2, yIndex:2, width:50, height:50},
+
+    {xIndex:3, yIndex:0, width:50, height:50},
+    {xIndex:4, yIndex:0, width:50, height:50},
+    {xIndex:5, yIndex:0, width:50, height:50},
+    {xIndex:3, yIndex:1, width:50, height:50},
+    {xIndex:4, yIndex:1, width:50, height:50},
+    {xIndex:5, yIndex:1, width:50, height:50},
+    {xIndex:3, yIndex:2, width:50, height:50},
+    {xIndex:4, yIndex:2, width:50, height:50},
+    {xIndex:5, yIndex:2, width:50, height:50}
   ];
 
   // generate a background
