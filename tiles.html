@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>Tiles</title>
-    <!--script type="text/javascript" src="slider.js"></script-->
+    <script type="text/javascript" src="collision.js"></script>
     <script>
 
 function setKeyboardEvents() {
@@ -102,17 +102,11 @@ function main() {
     {xIndex:5, yIndex:2, width:50, height:50}
   ];
 
-  // generate a background
+  // generate a default background
   var backgroundGrid = [];
   for(let y=0; y<backgroundHeight; y++) {
     for(let x=0; x<backgroundWidth; x++) {
-      backgroundGrid[x + (y * backgroundWidth)] = {
-        sheetIndex : 0,
-        xIndex: 0,
-        yIndex: 3,
-        xOffset: 0,
-        yOffset: 0
-      };
+      backgroundGrid[x + (y * backgroundWidth)] = 0;
     }
   }
 
@@ -123,19 +117,19 @@ function main() {
       if( isNaN( column[x] ) == false ) {
         let n = parseInt(column[x]);
         if(n < spriteObjects.length) {
-          backgroundGrid[x + (y * backgroundWidth)].xIndex = spriteObjects[n].xIndex;
-          backgroundGrid[x + (y * backgroundWidth)].yIndex = spriteObjects[n].yIndex;
+          backgroundGrid[x + (y * backgroundWidth)] = n;
         }
       }
     }
   }
 
-  // precalculate positions on spritesheet
-  for(let i in backgroundGrid) {
-    if(backgroundGrid[i].sheetIndex >= 0) {
-      backgroundGrid[i].xOffset = backgroundGrid[i].xIndex * tileWidth;
-      backgroundGrid[i].yOffset = backgroundGrid[i].yIndex * tileHeight;
-    }
+  function createCollisionMask(img, x, y, width, height) {
+    let tempCanvas = document.createElement('canvas');
+    tempCanvas.width = width;
+    tempCanvas.height = height;
+    let tempCtx = tempCanvas.getContext('2d');
+    tempCtx.drawImage(img, x, y, width, height, 0, 0, width, height);
+    return new CollisionMask(tempCtx.getImageData(0, 0, width, height));
   }
 
   var spriteSheets = [];
@@ -155,9 +149,15 @@ function main() {
     for(let y=0; y<backgroundHeight; y++) {
       for(let x=0; x<backgroundWidth; x++) {
         let bG = backgroundGrid[x + (y * backgroundWidth)];
-        if(bG.sheetIndex >= 0) {
-          ctx.drawImage(spriteSheets[bG.sheetIndex], bG.xOffset, bG.yOffset, tileWidth, tileHeight, x * tileWidth, y * tileHeight, tileWidth, tileHeight);
-        }
+        ctx.drawImage(spriteSheets[0],
+                      spriteObjects[bG].xOffset,
+                      spriteObjects[bG].yOffset,
+                      spriteObjects[bG].width,
+                      spriteObjects[bG].height,
+                      x * tileWidth,
+                      y * tileHeight,
+                      tileWidth,
+                      tileHeight);
       }
     }
   }
@@ -188,8 +188,17 @@ function main() {
       for(;bgY <= bgYY; bgY++) {
         for(let bgX = Math.ceil( (s.posX - s.srcSize) / tileWidth ); bgX <= bgXX; bgX++) {
           let bG = backgroundGrid[bgX + (bgY * backgroundWidth)];
-          if(bG && bG.sheetIndex >= 0) {
-            ctx.drawImage(spriteSheets[bG.sheetIndex], bG.xOffset, bG.yOffset, tileWidth, tileHeight, bgX * tileWidth, bgY * tileHeight, tileWidth, tileHeight);
+          if(bG != undefined) {
+            //ctx.drawImage(spriteSheets[bG.sheetIndex], bG.xOffset, bG.yOffset, tileWidth, tileHeight, bgX * tileWidth, bgY * tileHeight, tileWidth, tileHeight);
+            ctx.drawImage(spriteSheets[0],
+                      spriteObjects[bG].xOffset,
+                      spriteObjects[bG].yOffset,
+                      spriteObjects[bG].width,
+                      spriteObjects[bG].height,
+                      bgX * tileWidth,
+                      bgY * tileHeight,
+                      tileWidth,
+                      tileHeight);
           }
         }
       }
@@ -215,6 +224,20 @@ function main() {
   var cursorX, cursorY;
 
   function loadComplete() {
+    // precalculate positions on spritesheet
+    for(let i in spriteObjects) {
+      spriteObjects[i].xOffset = spriteObjects[i].xIndex * tileWidth;
+      spriteObjects[i].yOffset = spriteObjects[i].yIndex * tileHeight;
+      spriteObjects[i].collisionMask = createCollisionMask(spriteSheets[0],
+        spriteObjects[i].xOffset, spriteObjects[i].yOffset,
+        spriteObjects[i].width, spriteObjects[i].height);
+    }
+
+    normalSprites[0].collisionMask = createCollisionMask(
+      spriteSheets[normalSprites[0].sheetIndex],
+      normalSprites[0].xOffset, normalSprites[0].yOffset,
+      normalSprites[0].width, normalSprites[0].height);
+
     drawBackground();
 
     document.querySelector("body").addEventListener('mousemove', getCursorPos);
