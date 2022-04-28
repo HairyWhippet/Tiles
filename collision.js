@@ -22,7 +22,10 @@ function CollisionMask(data) {
       for (var bit = 0; bit < 32; ++bit) {
         bits = bits << 1;
         if (x + bit < this.w) {
-          if (data.data[(y*data.width + x + bit) * 4 + 3] > 5) {
+          let ave = data.data[(y*data.width + x + bit) * 4 + 0] +
+                    data.data[(y*data.width + x + bit) * 4 + 1] +
+                    data.data[(y*data.width + x + bit) * 4 + 2];
+          if((ave / 3) > 128) {
             bits += 1;
           }
         }

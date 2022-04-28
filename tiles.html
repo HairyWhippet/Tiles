@@ -49,6 +49,8 @@ function setKeyboardEvents() {
   };
 }
 
+var debug = 1;
+
 function main() {
 
   const backgroundHeight = 20;
@@ -59,6 +61,9 @@ function main() {
   setKeyboardEvents();
 
   var e = document.getElementById('canvas');
+  if(debug) {
+    e.style.position = 'absolute';
+  }
   var ctx = e.getContext('2d');
 
   //ctx.translate(0.5, 0.5);
@@ -81,25 +86,25 @@ function main() {
   map += '06 07 07 07 07 07 07 07 07 07 07 07 07 07 08\n';
 
   var spriteObjects = [
-    {xIndex:0, yIndex:0, width:50, height:50},
-    {xIndex:1, yIndex:0, width:50, height:50},
-    {xIndex:2, yIndex:0, width:50, height:50},
-    {xIndex:0, yIndex:1, width:50, height:50},
-    {xIndex:1, yIndex:1, width:50, height:50},
-    {xIndex:2, yIndex:1, width:50, height:50},
-    {xIndex:0, yIndex:2, width:50, height:50},
-    {xIndex:1, yIndex:2, width:50, height:50},
-    {xIndex:2, yIndex:2, width:50, height:50},
+    {xIndex:0, yIndex:0, width:50, height:50, cmxIndex:0, cmyIndex:3},
+    {xIndex:1, yIndex:0, width:50, height:50, cmxIndex:1, cmyIndex:3},
+    {xIndex:2, yIndex:0, width:50, height:50, cmxIndex:2, cmyIndex:3},
+    {xIndex:0, yIndex:1, width:50, height:50, cmxIndex:0, cmyIndex:4},
+    {xIndex:1, yIndex:1, width:50, height:50, cmxIndex:1, cmyIndex:4},
+    {xIndex:2, yIndex:1, width:50, height:50, cmxIndex:2, cmyIndex:4},
+    {xIndex:0, yIndex:2, width:50, height:50, cmxIndex:0, cmyIndex:5},
+    {xIndex:1, yIndex:2, width:50, height:50, cmxIndex:1, cmyIndex:5},
+    {xIndex:2, yIndex:2, width:50, height:50, cmxIndex:2, cmyIndex:5},
 
-    {xIndex:3, yIndex:0, width:50, height:50},
-    {xIndex:4, yIndex:0, width:50, height:50},
-    {xIndex:5, yIndex:0, width:50, height:50},
-    {xIndex:3, yIndex:1, width:50, height:50},
-    {xIndex:4, yIndex:1, width:50, height:50},
-    {xIndex:5, yIndex:1, width:50, height:50},
-    {xIndex:3, yIndex:2, width:50, height:50},
-    {xIndex:4, yIndex:2, width:50, height:50},
-    {xIndex:5, yIndex:2, width:50, height:50}
+    {xIndex:3, yIndex:0, width:50, height:50, cmxIndex:3, cmyIndex:3},
+    {xIndex:4, yIndex:0, width:50, height:50, cmxIndex:4, cmyIndex:3},
+    {xIndex:5, yIndex:0, width:50, height:50, cmxIndex:5, cmyIndex:3},
+    {xIndex:3, yIndex:1, width:50, height:50, cmxIndex:3, cmyIndex:4},
+    {xIndex:4, yIndex:1, width:50, height:50, cmxIndex:4, cmyIndex:4},
+    {xIndex:5, yIndex:1, width:50, height:50, cmxIndex:5, cmyIndex:4},
+    {xIndex:3, yIndex:2, width:50, height:50, cmxIndex:3, cmyIndex:5},
+    {xIndex:4, yIndex:2, width:50, height:50, cmxIndex:4, cmyIndex:5},
+    {xIndex:5, yIndex:2, width:50, height:50, cmxIndex:5, cmyIndex:5}
   ];
 
   // generate a default background
@@ -130,6 +135,40 @@ function main() {
     let tempCtx = tempCanvas.getContext('2d');
     tempCtx.drawImage(img, x, y, width, height, 0, 0, width, height);
     return new CollisionMask(tempCtx.getImageData(0, 0, width, height));
+  }
+
+  function createCollisionMaskFromSprite(sprite) {
+    let tempCanvas = document.createElement('canvas');
+    tempCanvas.width = sprite.srcSize;
+    tempCanvas.height = sprite.srcSize;
+
+if(debug) {
+  tempCanvas.style.position = 'absolute';
+  document.body.appendChild(tempCanvas);
+}
+
+    let tempCtx = tempCanvas.getContext('2d');
+
+    tempCtx.save();
+    let tX = sprite.srcWidth / 2;
+    let tY = sprite.srcHeight / 2;
+
+    tempCtx.translate(tX, tY);
+    tempCtx.rotate(sprite.posAngle * Math.PI/180);
+    tempCtx.translate(-tX, -tY);
+
+    tempCtx.drawImage(spriteSheets[sprite.sheetIndex],
+                  sprite.srcX,
+                  sprite.srcY,
+                  sprite.srcWidth,
+                  sprite.srcHeight,
+                  0, 0, sprite.srcWidth, sprite.srcHeight);
+    tempCtx.restore();
+if(debug) {
+  tempCanvas.remove();
+}
+    //tempCtx.drawImage(img, x, y, width, height, 0, 0, width, height);
+    return new CollisionMask(tempCtx.getImageData(0, 0, sprite.srcWidth, sprite.srcHeight));
   }
 
   var spriteSheets = [];
@@ -170,9 +209,11 @@ function main() {
       srcY: 0,
       srcWidth: 50,
       srcHeight: 50,
+      cmX: 0,
+      cmY: 50,
       srcSize: Math.hypot(50, 50),
-      posX: 20,
-      posY: 20,
+      posX: 50,
+      posY: 50,
       posAngle: 90
     }
   );
@@ -185,8 +226,8 @@ function main() {
       let bgY = Math.ceil( (s.posY - s.srcSize) / tileHeight );
       let bgXX = Math.ceil( (s.posX + s.srcSize) / tileWidth );
       let bgYY = Math.ceil( (s.posY + s.srcSize) / tileHeight );
-      for(;bgY <= bgYY; bgY++) {
-        for(let bgX = Math.ceil( (s.posX - s.srcSize) / tileWidth ); bgX <= bgXX; bgX++) {
+      for(;bgY < bgYY; bgY++) {
+        for(let bgX = Math.ceil( (s.posX - s.srcSize) / tileWidth ); bgX < bgXX; bgX++) {
           let bG = backgroundGrid[bgX + (bgY * backgroundWidth)];
           if(bG != undefined) {
             //ctx.drawImage(spriteSheets[bG.sheetIndex], bG.xOffset, bG.yOffset, tileWidth, tileHeight, bgX * tileWidth, bgY * tileHeight, tileWidth, tileHeight);
@@ -219,6 +260,45 @@ function main() {
       }
     }
   }
+//var collisions = 0;
+  function checkForCollision() {
+    for(let i in normalSprites) {
+      let s = normalSprites[i];
+
+      let collisionPoints = [];
+      // fix background underneath sprite.
+      let bgY = Math.ceil( (s.posY - s.srcSize) / tileHeight );
+      let bgXX = Math.ceil( (s.posX + s.srcSize) / tileWidth );
+      let bgYY = Math.ceil( (s.posY + s.srcSize) / tileHeight );
+      for(;bgY < bgYY; bgY++) {
+        for(let bgX = Math.ceil( (s.posX - s.srcSize) / tileWidth ); bgX < bgXX; bgX++) {
+          let bG = backgroundGrid[bgX + (bgY * backgroundWidth)];
+          if(bG != undefined && spriteObjects[bG].collisionMask) {
+            //ctx.drawImage(spriteSheets[bG.sheetIndex], bG.xOffset, bG.yOffset, tileWidth, tileHeight, bgX * tileWidth, bgY * tileHeight, tileWidth, tileHeight);
+            let c = s.collisionMask.collidesWith(spriteObjects[bG].collisionMask,
+                           ((bgX * tileWidth) - s.posX) | 0,
+                           ((bgY * tileHeight) - s.posY) | 0);
+            if(c === true) {
+              collisionPoints.push({x:bgX, y:bgY});
+            }
+if(debug) {
+  if(c == true) {
+    ctx.strokeStyle = ' red';
+  } else {
+    ctx.strokeStyle = 'black';
+  }
+  ctx.beginPath();
+  ctx.rect(bgX * tileWidth, bgY * tileHeight, 50, 50);
+  ctx.stroke();
+//    collisions++;
+//    ctx.fillText(collisions, 10, 10);
+}
+          }
+        }
+      }
+      normalSprites[i].collisionPoints = collisionPoints;
+    }
+  }
 
   loadSpriteSheets();
   var cursorX, cursorY;
@@ -228,15 +308,18 @@ function main() {
     for(let i in spriteObjects) {
       spriteObjects[i].xOffset = spriteObjects[i].xIndex * tileWidth;
       spriteObjects[i].yOffset = spriteObjects[i].yIndex * tileHeight;
+      spriteObjects[i].cmxOffset = spriteObjects[i].cmxIndex * tileWidth;
+      spriteObjects[i].cmyOffset = spriteObjects[i].cmyIndex * tileHeight;
+
       spriteObjects[i].collisionMask = createCollisionMask(spriteSheets[0],
-        spriteObjects[i].xOffset, spriteObjects[i].yOffset,
+        spriteObjects[i].cmxOffset, spriteObjects[i].cmyOffset,
         spriteObjects[i].width, spriteObjects[i].height);
     }
 
     normalSprites[0].collisionMask = createCollisionMask(
       spriteSheets[normalSprites[0].sheetIndex],
-      normalSprites[0].xOffset, normalSprites[0].yOffset,
-      normalSprites[0].width, normalSprites[0].height);
+      normalSprites[0].cmX, normalSprites[0].cmY,
+      normalSprites[0].srcWidth, normalSprites[0].srcHeight);
 
     drawBackground();
 
@@ -248,7 +331,13 @@ function main() {
 
     var then = performance.now();
     function aaa() {
+
+if(debug) {
+  drawBackground();
+}
+
       drawSprites();
+      checkForCollision();
 
       let now = performance.now();
       let elapsed = now - then;
@@ -260,11 +349,52 @@ function main() {
       let radian = Math.atan2(cursorX - midX, cursorY - midY);
       if(!isNaN(radian)) {
         normalSprites[0].posAngle = (radian * (180 / Math.PI) * -1) + 180;
-
+        normalSprites[0].collisionMask = createCollisionMaskFromSprite( normalSprites[0] );
         let dist = Math.hypot(midX - cursorX, midY - cursorY);
         if(dist > 5) {
-          normalSprites[0].posX += ((dist / 1000) * elapsed) * Math.sin(radian);
-          normalSprites[0].posY += ((dist / 1000) * elapsed) * Math.cos(radian);
+          let newX = normalSprites[0].posX + ((dist / 1000) * elapsed) * Math.sin(radian);
+          let newY = normalSprites[0].posY + ((dist / 1000) * elapsed) * Math.cos(radian);
+
+          if(newX > normalSprites[0].posX) {
+            for(i in normalSprites[0].collisionPoints) {
+              if((normalSprites[0].collisionPoints[i].x * tileWidth) > newX) {
+                newX = -1;
+              }
+            }
+          }
+
+          if(newX < normalSprites[0].posX) {
+            for(i in normalSprites[0].collisionPoints) {
+              if((normalSprites[0].collisionPoints[i].x * tileWidth) < newX) {
+                newX = -1;
+              }
+            }
+          }
+
+          if(newY > normalSprites[0].posY) {
+            for(i in normalSprites[0].collisionPoints) {
+              if((normalSprites[0].collisionPoints[i].y * tileHeight) > newY) {
+                newY = -1;
+              }
+            }
+          }
+
+          if(newY < normalSprites[0].posY) {
+            for(i in normalSprites[0].collisionPoints) {
+              if((normalSprites[0].collisionPoints[i].y * tileHeight) < newY) {
+                newY = -1;
+              }
+            }
+          }
+
+          if(newX >= 0) {
+            normalSprites[0].posX = newX;
+          }
+
+          if(newY >= 0) {
+            normalSprites[0].posY = newY;
+          }
+
         }
       }
 
