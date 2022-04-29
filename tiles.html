@@ -142,10 +142,10 @@ function main() {
     tempCanvas.width = sprite.srcSize;
     tempCanvas.height = sprite.srcSize;
 
-if(debug) {
-  tempCanvas.style.position = 'absolute';
-  document.body.appendChild(tempCanvas);
-}
+//if(debug) {
+//  tempCanvas.style.position = 'absolute';
+//  document.body.appendChild(tempCanvas);
+//}
 
     let tempCtx = tempCanvas.getContext('2d');
 
@@ -164,10 +164,9 @@ if(debug) {
                   sprite.srcHeight,
                   0, 0, sprite.srcWidth, sprite.srcHeight);
     tempCtx.restore();
-if(debug) {
-  tempCanvas.remove();
-}
-    //tempCtx.drawImage(img, x, y, width, height, 0, 0, width, height);
+//if(debug) {
+//  tempCanvas.remove();
+//}
     return new CollisionMask(tempCtx.getImageData(0, 0, sprite.srcWidth, sprite.srcHeight));
   }
 
